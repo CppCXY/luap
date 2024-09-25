@@ -1,0 +1,9 @@
+[package]
+name = "github_package"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+git2 = { version = "0.19" }
+dirs = "4.0"
+lua_workspace_config = { path = "../lua_workspace_config" }

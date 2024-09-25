@@ -1,0 +1,10 @@
+[package]
+name = "luap"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+structopt = "0.3.26"
+indicatif = "0.17.8"
+github_package = { path = "../github_package" }
+lua_workspace_config = { path = "../lua_workspace_config" }
