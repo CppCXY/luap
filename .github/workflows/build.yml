@@ -17,10 +17,10 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-20.04,   target: x86_64-unknown-linux-gnu,   platform: linux-x64,    cross: general }
-          - { os: ubuntu-22.04,   target: aarch64-unknown-linux-gnu,  platform: linux-arm64,  cross: general }
+          - { os: ubuntu-22.04,   target: aarch64-unknown-linux-gnu,  platform: linux-arm64,  cross: linux-aarch64 }
           # - { os: ubuntu-20.04,   target: x86_64-unknown-linux-musl,  platform: linux-musl,   cross: cross }
           - { os: ubuntu-22.04,   target: x86_64-unknown-freebsd,     platform: linux-bsd,    cross: cross }
-          - { os: macos-latest,   target: x86_64-apple-darwin,        platform: darwin-x64,   cross: corss }
+          - { os: macos-latest,   target: x86_64-apple-darwin,        platform: darwin-x64,   cross: cross }
           - { os: macos-latest,   target: aarch64-apple-darwin,       platform: darwin-arm64, cross: general }
           - { os: windows-latest, target: x86_64-pc-windows-msvc,     platform: win32-x64,    cross: general }
           - { os: windows-latest, target: i686-pc-windows-msvc,       platform: win32-ia32,   cross: general }
@@ -41,6 +41,14 @@ jobs:
         run: |
           cargo install cross
           cross build --release --target ${{ matrix.target }} -p luap
+      - name: Build - linux-aarch64
+        if: ${{ matrix.cross == 'linux-aarch64' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y libc6-dev-arm64-cross
+          rustup target add aarch64-unknown-linux-gnu
+          cargo build --release --target aarch64-unknown-linux-gnu -p luap
   
       - name: package-unix
         if: ${{ matrix.os != 'windows-latest' }}
