@@ -8,3 +8,7 @@ structopt = "0.3.26"
 indicatif = "0.17.8"
 github_package = { path = "../github_package" }
 lua_workspace_config = { path = "../lua_workspace_config" }
+
+[features]
+default = []
+compile_ssl = ["github_package/compile_ssl"]

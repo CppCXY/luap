@@ -20,61 +20,104 @@ pub struct Package {
     pub path: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
 pub enum Dependency {
-    Simple(String),
+    Simple(String /* url */),
     Detailed {
+        url: String,
+        tag: Option<String>,
+        branch: Option<String>,
+        hash: Option<String>,
         version: Option<String>,
-        github: Option<GithubDependency>,
         path: Option<String>,
     },
 }
 
 impl Dependency {
-    pub fn get_version(&self) -> Option<&String> {
+    pub fn get_github_dependency(&self) -> GithubDependency {
         match self {
-            Dependency::Simple(version) => Some(version),
-            Dependency::Detailed { version, .. } => version.as_ref(),
+            Dependency::Simple(url) => GithubDependency {
+                url: url.clone(),
+                tag: None,
+                branch: None,
+                hash: None,
+            },
+            Dependency::Detailed {
+                url,
+                tag,
+                branch,
+                hash,
+                ..
+            } => GithubDependency {
+                url: url.clone(),
+                tag: tag.clone(),
+                branch: branch.clone(),
+                hash: hash.clone(),
+            },
         }
     }
 
-    pub fn get_github(&self) -> Option<&GithubDependency> {
+    pub fn get_path(&self) -> Option<String> {
         match self {
             Dependency::Simple(_) => None,
-            Dependency::Detailed { github, .. } => github.as_ref(),
+            Dependency::Detailed { path, .. } => path.clone(),
+        }
+    }
+
+    pub fn get_version(&self) -> Option<String> {
+        match self {
+            Dependency::Simple(_) => None,
+            Dependency::Detailed { version, .. } => version.clone(),
         }
     }
 
     pub fn try_merge_lock_dependency(&mut self, lock_dep: &Dependency) {
-        match (self, lock_dep) {
-            (
+        if let Dependency::Detailed {
+            url: _,
+            tag,
+            branch,
+            hash,
+            version,
+            path,
+        } = lock_dep
+        {
+            match self {
+                Dependency::Simple(url) => {
+                    *self = Dependency::Detailed {
+                        url: url.clone(),
+                        tag: tag.clone(),
+                        branch: branch.clone(),
+                        hash: hash.clone(),
+                        version: version.clone(),
+                        path: path.clone(),
+                    }
+                }
                 Dependency::Detailed {
-                    version: _,
-                    github: self_github,
-                    path: _,
-                },
-                Dependency::Detailed {
-                    version: _,
-                    github: lock_github,
-                    path: _,
-                },
-            ) => {
-                if let Some(lock_github) = lock_github {
-                    if let Some(self_github) = self_github {
-                        if self_github.tag.is_none() {
-                            self_github.tag = lock_github.tag.clone();
-                        }
-                        if self_github.branch.is_none() {
-                            self_github.branch = lock_github.branch.clone();
-                        }
-                        if self_github.hash.is_none() {
-                            self_github.hash = lock_github.hash.clone();
-                        }
+                    url: _,
+                    tag: self_tag,
+                    branch: self_branch,
+                    hash: self_hash,
+                    version: self_version,
+                    path: self_path,
+                } => {
+                    if self_tag.is_none() {
+                        *self_tag = tag.clone();
+                    }
+                    if self_branch.is_none() {
+                        *self_branch = branch.clone();
+                    }
+                    if self_hash.is_none() {
+                        *self_hash = hash.clone();
+                    }
+                    if self_version.is_none() {
+                        *self_version = version.clone();
+                    }
+                    if self_path.is_none() {
+                        *self_path = path.clone();
                     }
                 }
             }
-            _ => {}
         }
     }
 }
@@ -187,72 +230,6 @@ impl WorkspaceConfig {
 mod test {
     use super::*;
 
-    #[test]
-    fn test_dependencies_serialization() {
-        let mut dependencies = HashMap::new();
-        dependencies.insert("lua".to_string(), Dependency::Simple("5.4.7".to_string()));
-        dependencies.insert(
-            "ls_Framework".to_string(),
-            Dependency::Detailed {
-                version: Some("0.5.1".to_string()),
-                github: Some(GithubDependency {
-                    url: "https://github.com/CppCXY/LanguageServer.Framework.git".to_string(),
-                    tag: None,
-                    branch: None,
-                    hash: None,
-                }),
-                path: None,
-            },
-        );
-
-        let config = WorkspaceConfig {
-            package: None,
-            dependencies: Some(dependencies),
-            dev_dependencies: None,
-        };
-
-        let serialized = config.to_toml_str().unwrap();
-        println!("{}", serialized);
-    }
-
-    #[test]
-    fn test_dependencies_deserialization() {
-        let toml_str = r#"
-            [dependencies]
-            lua = "5.4.7"
-            luamake = { version = "0.5.1" }
-
-            [dev-dependencies]
-            test-lib = { path = "../test-lib" }
-            "#;
-
-        let config: WorkspaceConfig = WorkspaceConfig::parse_toml_str(toml_str).unwrap();
-
-        let dependencies = config.dependencies.unwrap();
-
-        assert_eq!(
-            dependencies.get("lua"),
-            Some(&Dependency::Simple("5.4.7".to_string()))
-        );
-
-        assert_eq!(
-            dependencies.get("luamake"),
-            Some(&Dependency::Detailed {
-                version: Some("0.5.1".to_string()),
-                github: None,
-                path: None,
-            })
-        );
-
-        assert_eq!(
-            config.dev_dependencies.unwrap().get("test-lib"),
-            Some(&Dependency::Detailed {
-                version: None,
-                github: None,
-                path: Some("../test-lib".to_string()),
-            })
-        );
-    }
 
     #[test]
     fn test_workspace_config_serialization() {

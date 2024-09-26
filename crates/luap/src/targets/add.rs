@@ -4,7 +4,13 @@ use lua_workspace_config::workspace_config::{Dependency, GithubDependency, Works
 
 use super::{init::init_package, install::install_package};
 
-pub fn add_package(package_name: &str, github_repo: &str, branch: Option<String>, tag: Option<String>, hash: Option<String>) {
+pub fn add_package(
+    package_name: &str,
+    github_repo: &str,
+    branch: Option<String>,
+    tag: Option<String>,
+    hash: Option<String>,
+) {
     match inner_add_package(package_name, github_repo, branch, tag, hash) {
         Ok(_) => {
             eprintln!("Add package success");
@@ -15,7 +21,13 @@ pub fn add_package(package_name: &str, github_repo: &str, branch: Option<String>
     }
 }
 
-pub fn add_dev_package(package_name: &str, github_repo: &str, branch: Option<String>, tag: Option<String>, hash: Option<String>) {
+pub fn add_dev_package(
+    package_name: &str,
+    github_repo: &str,
+    branch: Option<String>,
+    tag: Option<String>,
+    hash: Option<String>,
+) {
     match inner_add_package(package_name, github_repo, branch, tag, hash) {
         Ok(_) => {
             eprintln!("Add dev dependency success");
@@ -26,7 +38,13 @@ pub fn add_dev_package(package_name: &str, github_repo: &str, branch: Option<Str
     }
 }
 
-fn inner_add_package(package_name: &str, github_repo: &str, branch: Option<String>, tag: Option<String>, hash: Option<String>) -> Result<(), std::io::Error> {
+fn inner_add_package(
+    package_name: &str,
+    github_repo: &str,
+    branch: Option<String>,
+    tag: Option<String>,
+    hash: Option<String>,
+) -> Result<(), std::io::Error> {
     let package_toml_path = Path::new("package.toml");
     if !package_toml_path.exists() {
         init_package();
@@ -36,12 +54,10 @@ fn inner_add_package(package_name: &str, github_repo: &str, branch: Option<Strin
     let mut config = WorkspaceConfig::parse_toml_file(package_toml_path.to_str().unwrap())?;
     let dep = Dependency::Detailed {
         version: None,
-        github: Some(GithubDependency {
-            url: github_repo.to_string(),
-            branch,
-            tag,
-            hash,
-        }),
+        url: github_repo.to_string(),
+        branch,
+        tag,
+        hash,
         path: None,
     };
 

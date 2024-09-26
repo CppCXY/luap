@@ -7,4 +7,8 @@ edition = "2021"
 git2 = { version = "0.19" }
 dirs = "4.0"
 lua_workspace_config = { path = "../lua_workspace_config" }
-openssl = { version = "0.10", features = ["vendored"] }
+openssl = { version = "0.10", features = ["vendored"], optional = true }
+
+[features]
+default = []
+compile_ssl = ["openssl/vendored"]

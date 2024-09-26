@@ -35,12 +35,12 @@ jobs:
         if: ${{ matrix.cross == 'general' }}
         run: |
           rustup target add ${{ matrix.target }}
-          cargo build --release --target ${{ matrix.target }}  -p luap
+          cargo build --release --target ${{ matrix.target }}  -p luap --features "compile_ssl"
       - name: Build - cross
         if: ${{ matrix.cross == 'cross' }}
         run: |
           cargo install cross
-          cross build --release --target ${{ matrix.target }} -p luap
+          cross build --release --target ${{ matrix.target }} -p luap --features "compile_ssl"
   
       - name: package-unix
         if: ${{ matrix.os != 'windows-latest' }}

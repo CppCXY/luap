@@ -10,11 +10,11 @@ pub fn check_package(dump_library: bool) {
     let base_path = Path::new(&base_path);
     let mut results: Vec<String> = Vec::new();
     match try_check_package(base_path, &mut results) {
-        Ok(true) => {},
+        Ok(true) => {}
         Ok(false) => {
             eprintln!("Check package failed");
             std::process::exit(1);
-        },
+        }
         Err(e) => {
             eprintln!("Failed to check package: {}", e);
             std::process::exit(1);
@@ -70,31 +70,21 @@ fn inner_check_package(
     results: &mut Vec<String>,
     dev: bool,
 ) -> Result<bool, std::io::Error> {
-    match dep {
-        Dependency::Detailed {
-            version,
-            github,
-            path,
-        } => {
-            if let Some(github) = github {
-                let repo_path = find_repo_path(name, version.clone(), path.clone());
-                let library_path = find_library_path(&repo_path, path.clone());
-                results.push(library_path.to_str().unwrap().to_string());
+    let github = dep.get_github_dependency();
+    let version = dep.get_version();
+    let path = dep.get_path();
+    let repo_path = find_repo_path(name, version.clone(), path.clone());
+    let library_path = find_library_path(&repo_path, path.clone());
+    results.push(library_path.to_str().unwrap().to_string());
 
-                let succ = check_github_repo_version(&github, &repo_path)
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-                if !succ {
-                    eprintln!("Check package failed: {}", name);
-                }
-
-                if !dev {
-                    try_check_package(&repo_path, results)?;
-                }
-                return Ok(succ);
-            }
-        }
-        _ => {}
+    let succ = check_github_repo_version(&github, &repo_path)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    if !succ {
+        eprintln!("Check package failed: {}", name);
     }
 
-    Ok(false)
+    if !dev {
+        try_check_package(&repo_path, results)?;
+    }
+    return Ok(succ);
 }

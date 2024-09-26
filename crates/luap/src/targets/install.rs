@@ -1,6 +1,6 @@
-use std::{thread, path::Path};
 use indicatif::{ProgressBar, ProgressStyle};
 use lua_workspace_config::workspace_config::{Dependency, GithubDependency, WorkspaceConfig};
+use std::{path::Path, thread};
 
 use crate::lock_file::gen_lock_file;
 
@@ -59,32 +59,24 @@ fn try_install_package(base_path: &Path, results: &mut Vec<String>) {
 }
 
 fn check_and_install_package(name: &str, dep: &Dependency, results: &mut Vec<String>, dev: bool) {
-    match dep {
-        Dependency::Simple(_) => {
-            eprintln!(
-                "Installing dependency package: {}, but current not support install from luarocks",
-                name
-            );
-        }
-        Dependency::Detailed {
-            version,
-            github,
-            path,
-        } => {
-            if let Some(version) = version {
-                eprintln!("Installing dependency package: {}@{}, but current not support install from luarocks", name, version);
-            }
-            if let Some(github) = github {
-                let to_path = find_repo_path(name, version.clone(), path.clone());
-                check_and_install_github_package(name, github, to_path.as_path());
-                if !dev {
-                    try_install_package(&to_path, results);
-                }
-                let library_path = find_library_path(to_path.as_path(), None);
-                results.push(library_path.to_str().unwrap().to_string());
-            }
-        }
+    let version = dep.get_version();
+    let github = dep.get_github_dependency();
+    let path = dep.get_path();
+
+    if let Some(version) = version {
+        eprintln!(
+            "Installing dependency package: {}@{}, but current not support version",
+            name, version
+        );
     }
+
+    let to_path = find_repo_path(name, dep.get_version(), path.clone());
+    check_and_install_github_package(name, &github, to_path.as_path());
+    if !dev {
+        try_install_package(&to_path, results);
+    }
+    let library_path = find_library_path(to_path.as_path(), None);
+    results.push(library_path.to_str().unwrap().to_string());
 }
 
 fn check_and_install_github_package(name: &str, github_config: &GithubDependency, to_path: &Path) {
@@ -128,17 +120,17 @@ fn check_and_install_github_package(name: &str, github_config: &GithubDependency
         let new_github_config = github_config.clone();
         let new_to_path = to_path.to_path_buf();
         let handle = thread::spawn(move || {
-            let _ = github_package::clone_and_init_submodules(&new_github_config, new_to_path.as_path());
+            let _ = github_package::clone_and_init_submodules(
+                &new_github_config,
+                new_to_path.as_path(),
+            );
         });
 
         while !handle.is_finished() {
             pb.tick();
             thread::sleep(std::time::Duration::from_millis(100));
         }
-        pb.finish_with_message(format!(
-            "Install dependency package: {}!",
-            name
-        ));
+        pb.finish_with_message(format!("Install dependency package: {}!", name));
     }
 }
 

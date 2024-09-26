@@ -18,36 +18,40 @@ pub(crate) fn gen_lock_file(base_path: &Path) -> Result<(), Box<dyn Error>> {
 
     if let Some(deps) = &config.dependencies {
         for (name, dep) in deps {
-            if let Dependency::Detailed { version, github, path } = dep {
-                if let Some(github) = github {
-                    let repo_path = find_repo_path(name, version.clone(), path.clone());
-                    let github_dep = get_dep_from_repo(repo_path.as_path(), &github.url)?;
-                    let new_dep = Dependency::Detailed {
-                        version: version.clone(),
-                        github: Some(github_dep),
-                        path: path.clone(),
-                    };
-                    lock_file.add_dependency(name.to_string(), new_dep);
-                    gen_lock_file(&repo_path)?;
-                }
-            }
+            let version = dep.get_version();
+            let path = dep.get_path();
+            let repo_path = find_repo_path(name, version.clone(), path.clone());
+            let github = dep.get_github_dependency();
+            let github_dep = get_dep_from_repo(repo_path.as_path(), &github.url)?;
+            let new_dep = Dependency::Detailed {
+                version: version.clone(),
+                branch: github_dep.branch.clone(),
+                tag: github_dep.tag.clone(),
+                hash: github_dep.hash.clone(),
+                url: github_dep.url.clone(),
+                path: path.clone(),
+            };
+            lock_file.add_dependency(name.to_string(), new_dep);
+            gen_lock_file(&repo_path)?;
         }
     }
 
     if let Some(dev_deps) = &config.dev_dependencies {
         for (name, dep) in dev_deps {
-            if let Dependency::Detailed { version, github, path } = dep {
-                if let Some(github) = github {
-                    let repo_path = find_repo_path(name, version.clone(), path.clone());
-                    let github_dep = get_dep_from_repo(repo_path.as_path(), &github.url)?;
-                    let new_dep = Dependency::Detailed {
-                        version: version.clone(),
-                        github: Some(github_dep),
-                        path: path.clone(),
-                    };
-                    lock_file.add_dependency(name.to_string(), new_dep);
-                }
-            }
+            let version = dep.get_version();
+            let path = dep.get_path();
+            let repo_path = find_repo_path(name, version.clone(), path.clone());
+            let github = dep.get_github_dependency();
+            let github_dep = get_dep_from_repo(repo_path.as_path(), &github.url)?;
+            let new_dep = Dependency::Detailed {
+                version: version.clone(),
+                branch: github_dep.branch.clone(),
+                tag: github_dep.tag.clone(),
+                hash: github_dep.hash.clone(),
+                url: github_dep.url.clone(),
+                path: path.clone(),
+            };
+            lock_file.add_dependency(name.to_string(), new_dep);
         }
     }
 
