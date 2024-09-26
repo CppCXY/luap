@@ -22,6 +22,65 @@ Clone the repository:
    ```
 If your computer does not have SSL, you may need to add `--features "compile_ssl"`: for example:
    ```bash
-   cargo build --release -p luap --features "compile_ssl".
+   cargo build --release -p luap --features "compile_ssl"
    ```
 ## Usage
+
+### Init
+
+To initialize a new Lua project, run the following command in your project directory:
+   ```bash
+   luap init
+   ```
+This will create a `package.toml` file in your project directory. You can edit this file to specify the packages you want to use in your project.
+
+### Add
+
+To add a package to your project, run the following command:
+   ```bash
+   luap add <package-name> <github-repo>
+   ```
+For example:
+   ```bash
+   luap add resty https://github.com/LuaCATS/openresty.git
+   ```
+This will add the `resty` package from the `LuaCATS/openresty` repository to your project.
+
+### Install
+
+To install the packages specified in your `package.toml` file, run the following command:
+   ```bash
+   luap install
+   ```
+This will clone the packages from GitHub and initialize any submodules.
+
+### Update
+
+To update the packages in your project, run the following command:
+   ```bash
+   luap update
+   ```
+This will update the packages to the latest version.
+
+To update a specific package, run the following command:
+   ```bash
+   luap update <package-name>
+   ```
+For example:
+   ```bash
+   luap update resty
+   ```
+This will update the `resty` package to the latest version.
+
+### Remove
+
+To remove a package from your project, run the following command:
+   ```bash
+   luap remove <package-name>
+   ```
+For example:
+   ```bash
+   luap remove resty
+   ```
+This will remove the `resty` package from your project.
+
