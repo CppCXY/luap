@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use lua_workspace_config::workspace_config::{Dependency, GithubDependency, WorkspaceConfig};
+use lua_workspace_config::workspace_config::{Dependency, WorkspaceConfig};
 
 use super::{init::init_package, install::install_package};
 

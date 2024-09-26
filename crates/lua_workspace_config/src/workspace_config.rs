@@ -72,6 +72,13 @@ impl Dependency {
         }
     }
 
+    pub fn get_url(&self) -> String {
+        match self {
+            Dependency::Simple(url) => url.clone(),
+            Dependency::Detailed { url, .. } => url.clone(),
+        }
+    }
+
     pub fn try_merge_lock_dependency(&mut self, lock_dep: &Dependency) {
         if let Dependency::Detailed {
             url: _,

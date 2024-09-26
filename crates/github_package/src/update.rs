@@ -58,5 +58,35 @@ pub fn update_to_special_version(
         }
     }
 
+    update_submodules(&repo)?;
+    Ok(())
+}
+
+pub fn update_to_latest(repo_path: &Path) -> Result<(), Error> {
+    let repo = git2::Repository::open(repo_path)?;
+
+    let head = repo.head()?;
+
+    let branch = head.shorthand().unwrap();
+
+    repo.find_remote("origin")?.fetch(&[branch], None, None)?;
+
+    let (object, reference) = repo.revparse_ext(&branch)?;
+    repo.checkout_tree(&object, None)?;
+    if let Some(reference) = reference {
+        repo.set_head(&reference.name().unwrap())?;
+    } else {
+        repo.set_head_detached(object.id())?;
+    }
+
+    update_submodules(&repo)?;
+    Ok(())
+}
+
+fn update_submodules(repo: &git2::Repository) -> Result<(), Error> {
+    let mut submodules = repo.submodules()?;
+    for submodule in submodules.iter_mut() {
+        submodule.update(true, None)?;
+    }
     Ok(())
 }

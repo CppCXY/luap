@@ -37,16 +37,11 @@ fn main() {
         }
         command_opt::CommandOpt::Update {
             package,
-            dev,
             hash,
             tag,
             branch,
         } => {
-            if dev {
-                targets::update::update_dev_package(&package, branch, tag, hash);
-            } else {
-                targets::update::update_package(&package, branch, tag, hash);
-            }
+            targets::update::update_package(package, branch, tag, hash);
         }
         command_opt::CommandOpt::Init => {
             targets::init::init_package();

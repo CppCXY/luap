@@ -6,7 +6,8 @@ pub mod dep;
 use dirs::home_dir;
 pub use clone::clone_and_init_submodules;
 pub use check::check_github_repo_version;
-pub use update::update_to_special_version;
+pub use update::*;
+
 
 pub fn find_id_rsa() -> Option<String> {
     let home = home_dir()?;
